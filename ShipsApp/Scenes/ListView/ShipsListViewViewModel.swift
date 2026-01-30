@@ -24,13 +24,3 @@ final class ShipsViewModel: ObservableObject {
         }
     }
 }
-
-struct Ship: Identifiable {
-    let id = UUID()
-    let name: String
-    let type: String
-    let status: String
-    let isFavorite: Bool
-}
-
-
