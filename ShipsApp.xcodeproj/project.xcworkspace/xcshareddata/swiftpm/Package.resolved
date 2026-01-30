@@ -1,0 +1,15 @@
+{
+  "originHash" : "8aa82255804d3987607fb04478146792018847a9bfdaf03409f89c0bb537a695",
+  "pins" : [
+    {
+      "identity" : "networkkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mmm11233/NetworkKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "40394a100f86ab840f38fa448fbfd6b8d27140aa"
+      }
+    }
+  ],
+  "version" : 3
+}

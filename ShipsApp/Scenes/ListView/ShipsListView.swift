@@ -39,10 +39,13 @@ struct ShipsListView: View {
                     }
                     .padding()
                 }
+                .refreshable {
+                    await viewModel.loadShips()
+                }
             }
         }
         .task {
-            await viewModel.loadShips()
+            await viewModel.initialLoad()
         }
     }
 }

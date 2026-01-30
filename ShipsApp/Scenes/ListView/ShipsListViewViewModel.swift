@@ -12,19 +12,19 @@ import NetworkKit
 
 @MainActor
 final class ShipsViewModel: ObservableObject {
-
+    
     @Published var searchText: String = ""
     @Published var ships: [Ship] = []
     @Published var isLoading = false
-
+    
     private let service: ShipsServiceProtocol
-
+    
     init() {
         let client = NetworkClient()
         self.service = ShipsService(client: client)
     }
-
-
+    
+    
     var filteredShips: [Ship] {
         guard !searchText.isEmpty else { return ships }
         return ships.filter {
@@ -32,15 +32,19 @@ final class ShipsViewModel: ObservableObject {
             $0.type.localizedCaseInsensitiveContains(searchText)
         }
     }
-
+    
     func loadShips() async {
-           isLoading = true
-           do {
-               let dtoShips = try await service.fetchShips()
-               ships = dtoShips.map { Ship(dto: $0, isFavorite: false) }
-           } catch {
-               print(error)
-           }
-           isLoading = false
-       }
+        do {
+            let dtoShips = try await service.fetchShips()
+            ships = dtoShips.map { Ship(dto: $0, isFavorite: false) }
+        } catch {
+            print(error)
+        }
+    }
+    
+    func initialLoad() async {
+        isLoading = true
+        await loadShips()
+        isLoading = false
+    }
 }
