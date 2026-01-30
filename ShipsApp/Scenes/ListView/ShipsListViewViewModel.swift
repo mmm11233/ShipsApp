@@ -8,19 +8,39 @@
 import SwiftUI
 import Foundation
 import Combine
+import NetworkKit
 
+@MainActor
 final class ShipsViewModel: ObservableObject {
+
     @Published var searchText: String = ""
-    
-    @Published var ships: [Ship] = [
-        Ship(name: "MR STEVEN", type: "Tug", status: "Stopped", isFavorite: true),
-        Ship(name: "Falcon 9", type: "Ship", status: "Active", isFavorite: false)
-    ]
-    
+    @Published var ships: [Ship] = []
+    @Published var isLoading = false
+
+    private let service: ShipsServiceProtocol
+
+    init() {
+        let client = NetworkClient()
+        self.service = ShipsService(client: client)
+    }
+
+
     var filteredShips: [Ship] {
         guard !searchText.isEmpty else { return ships }
         return ships.filter {
-            $0.name.localizedCaseInsensitiveContains(searchText)
+            $0.name.localizedCaseInsensitiveContains(searchText) ||
+            $0.type.localizedCaseInsensitiveContains(searchText)
         }
     }
+
+    func loadShips() async {
+           isLoading = true
+           do {
+               let dtoShips = try await service.fetchShips()
+               ships = dtoShips.map { Ship(dto: $0, isFavorite: false) }
+           } catch {
+               print(error)
+           }
+           isLoading = false
+       }
 }

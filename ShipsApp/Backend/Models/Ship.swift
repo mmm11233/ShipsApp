@@ -24,6 +24,7 @@ struct Ship: Identifiable {
     let isFavorite: Bool
 }
 
+
 extension Ship {
     init(dto: ShipDTO, isFavorite: Bool) {
         self.id = dto.id

@@ -5,8 +5,8 @@
 //  Created by Mariam Joglidze on 31.01.26.
 //
 
-import Foundation
 import NetworkKit
+import Foundation
 
 protocol ShipsServiceProtocol {
     func fetchShips() async throws -> [ShipDTO]
@@ -14,9 +14,9 @@ protocol ShipsServiceProtocol {
 
 final class ShipsService: ShipsServiceProtocol {
 
-    private let client: NetworkClient
+    private let client: NetworkClientProtocol
 
-    init(client: NetworkClient) {
+    init(client: NetworkClientProtocol) {
         self.client = client
     }
 
@@ -28,27 +28,18 @@ final class ShipsService: ShipsServiceProtocol {
     }
 }
 
-
 enum ShipsEndpoint: Endpoint {
-  case ships
+    case ships
 
     var baseURL: String {
-        "https://api.spacexdata.com/v4"
+        "https://api.spacexdata.com"
     }
 
     var path: String {
-        "/ships"
+        "/v4/ships"
     }
 
     var method: HTTPMethod {
         .get
-    }
-    
-    var headers: [String : String]? {
-       ["" : ""]
-    }
-    
-    var queryItems: [URLQueryItem]? {
-        []
     }
 }

@@ -25,14 +25,24 @@ struct ShipsListView: View {
             .cornerRadius(10)
             .padding(.horizontal)
             
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(viewModel.filteredShips) { ship in
-                        ShipCardView(ship: ship)
+            if viewModel.isLoading {
+                
+                ProgressView()
+                    .padding()
+                
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(viewModel.filteredShips) { ship in
+                            ShipCardView(ship: ship)
+                        }
                     }
+                    .padding()
                 }
-                .padding()
             }
+        }
+        .task {
+            await viewModel.loadShips()
         }
     }
 }
