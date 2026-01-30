@@ -22,6 +22,8 @@ struct Ship: Identifiable {
     let type: String
     let status: String
     let isFavorite: Bool
+    let image: String?
+
 }
 
 
@@ -32,5 +34,6 @@ extension Ship {
         self.type = dto.type
         self.status = dto.active ? "Active" : "Inactive"
         self.isFavorite = isFavorite
+        self.image = dto.image
     }
 }

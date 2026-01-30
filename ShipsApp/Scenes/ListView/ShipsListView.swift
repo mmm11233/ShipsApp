@@ -54,11 +54,8 @@ struct ShipCardView: View {
     var body: some View {
         
         ZStack {
-            Image(systemName: "photo")
-                .resizable()
-                .foregroundColor(.gray)
-                .font(.title2)
-            
+            RemoteImageView(urlString: ship.image)
+                .clipped()
             HStack{
                 VStack(alignment: .leading, spacing: 4) {
                     Text(ship.name)
