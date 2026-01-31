@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ShipsListView: View {
     
-    @StateObject  var viewModel = ShipsViewModel()
+    @ObservedObject  var viewModel = ShipsViewModel()
     
     var body: some View {
         NavigationStack {
