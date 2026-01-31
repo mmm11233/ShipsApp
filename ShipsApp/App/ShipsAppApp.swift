@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import CoreData
 
 @main
 struct ShipsAppApp: App {
+    @StateObject private var dataController = DataController()
     var body: some Scene {
         WindowGroup {
             ShipsListView()
+                .environment(\.managedObjectContext, dataController.container.viewContext)
         }
     }
 }
