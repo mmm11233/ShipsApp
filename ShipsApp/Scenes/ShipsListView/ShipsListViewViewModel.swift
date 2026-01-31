@@ -12,26 +12,22 @@ import NetworkKit
 
 @MainActor
 final class ShipsViewModel: ObservableObject {
-
-    // MARK: - Published Properties
+    
     @Published var searchText: String = ""
     @Published private(set) var ships: [Ship] = []
-    @Published private(set) var isLoading: Bool = false
+    @Published var isLoading = false
 
-    // MARK: - Dependencies
     private let service: ShipsServiceProtocol
-    private let favouritesManager: FavouritesManagingProtocol
+    private let dataController: DataController
 
-    // MARK: - Init
     init(
         service: ShipsServiceProtocol = ShipsService(client: NetworkClient()),
-        favouritesManager: FavouritesManagingProtocol = FavouritesManager.shared
+        dataController: DataController
     ) {
         self.service = service
-        self.favouritesManager = favouritesManager
+        self.dataController = dataController
     }
-
-    // MARK: - Computed Properties
+    
     var filteredShips: [Ship] {
         guard !searchText.isEmpty else { return ships }
         return ships.filter {
@@ -39,13 +35,12 @@ final class ShipsViewModel: ObservableObject {
             $0.type.localizedCaseInsensitiveContains(searchText)
         }
     }
-
-    // MARK: - Lifecycle Methods
+    
     func loadIfNeeded() async {
         guard ships.isEmpty else { return }
         await loadShips()
     }
-
+    
     func loadShips() async {
         isLoading = true
         defer { isLoading = false }
@@ -55,26 +50,25 @@ final class ShipsViewModel: ObservableObject {
             ships = dtoShips.map { dto in
                 Ship(
                     dto: dto,
-                    isFavorite: favouritesManager.contains(dto.id)
+                    isFavorite: dataController.isFavourite(ship: Ship(dto: dto, isFavorite: false))
                 )
             }
         } catch {
-            print("Error loading ships:", error)
+            print(error)
         }
     }
-
-    // MARK: - Actions
+    
+    // MARK: - Favourites Actions
     func toggleFavourite(for ship: Ship) {
-        if favouritesManager.contains(ship.id) {
-            favouritesManager.remove(ship.id)
+        if dataController.isFavourite(ship: ship) {
+            dataController.removeFavourite(ship: ship)
         } else {
-            favouritesManager.add(ship.id)
+            dataController.addFavourite(ship: ship)
         }
-
+        
         updateFavouriteState(for: ship.id)
     }
 
-    // MARK: - Private Helpers
     private func updateFavouriteState(for id: String) {
         guard let index = ships.firstIndex(where: { $0.id == id }) else { return }
         ships[index].isFavorite.toggle()

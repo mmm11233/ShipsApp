@@ -13,8 +13,8 @@ struct ShipsAppApp: App {
     @StateObject private var dataController = DataController()
     var body: some Scene {
         WindowGroup {
-            ShipsListView()
-                .environment(\.managedObjectContext, dataController.container.viewContext)
+            ShipsListView(dataController: dataController)
+                            .environment(\.managedObjectContext, dataController.container.viewContext)
         }
     }
 }
