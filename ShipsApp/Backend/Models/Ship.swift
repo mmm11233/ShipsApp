@@ -16,7 +16,7 @@ struct ShipDTO: Decodable {
     let status: String?
 }
 
-struct Ship: Identifiable {
+struct Ship: Identifiable, Hashable {
     let id: String
     let name: String
     let type: String

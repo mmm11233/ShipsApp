@@ -10,17 +10,16 @@ import SwiftUI
 struct ShipsListView: View {
     
     @StateObject private var viewModel = ShipsViewModel()
+    @State private var navigationPath = NavigationPath()
     
     var body: some View {
-        NavigationStack {
-            content
-                .navigationTitle("Ships")
-                .task {
-                    if viewModel.ships.isEmpty {
-                        await viewModel.initialLoad()
-                    }
+        content
+            .task {
+                if viewModel.ships.isEmpty {
+                    await viewModel.initialLoad()
                 }
-        }
+            }
+        
     }
     
     private var content: some View {
@@ -61,18 +60,23 @@ struct ShipsListView: View {
     }
     
     private var shipsList: some View {
-        List(viewModel.filteredShips) { ship in
-            ShipCardView(ship: ship)
-                .listRowSeparator(.hidden)
-                .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
-        }
-        .listStyle(.plain)
-        .refreshable {
-            await viewModel.loadShips()
+        NavigationStack(path: $navigationPath) {
+            List(viewModel.filteredShips) { ship in
+                ShipCardView(ship: ship)
+                    .makeWholeViewTapable()
+                    .onTapGesture {
+                        navigationPath.append(ship)
+                    }
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
+            }
+            .listStyle(.plain)
+            .refreshable {
+                await viewModel.loadShips()
+            }
         }
     }
 }
-
 struct ShipCardView: View {
     
     let ship: Ship
