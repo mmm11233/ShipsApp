@@ -21,7 +21,7 @@ struct Ship: Identifiable, Hashable {
     let name: String
     let type: String
     let status: String
-    let isFavorite: Bool
+    var isFavorite: Bool
     let image: String?
 
 }

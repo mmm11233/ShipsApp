@@ -12,19 +12,26 @@ import NetworkKit
 
 @MainActor
 final class ShipsViewModel: ObservableObject {
-    
+
+    // MARK: - Published Properties
     @Published var searchText: String = ""
-    @Published var ships: [Ship] = []
-    @Published var isLoading = false
-    
+    @Published private(set) var ships: [Ship] = []
+    @Published private(set) var isLoading: Bool = false
+
+    // MARK: - Dependencies
     private let service: ShipsServiceProtocol
-    
-    init() {
-        let client = NetworkClient()
-        self.service = ShipsService(client: client)
+    private let favouritesManager: FavouritesManagingProtocol
+
+    // MARK: - Init
+    init(
+        service: ShipsServiceProtocol = ShipsService(client: NetworkClient()),
+        favouritesManager: FavouritesManagingProtocol = FavouritesManager.shared
+    ) {
+        self.service = service
+        self.favouritesManager = favouritesManager
     }
-    
-    
+
+    // MARK: - Computed Properties
     var filteredShips: [Ship] {
         guard !searchText.isEmpty else { return ships }
         return ships.filter {
@@ -32,28 +39,44 @@ final class ShipsViewModel: ObservableObject {
             $0.type.localizedCaseInsensitiveContains(searchText)
         }
     }
-    
-    //MARK: - Actions
-    func favouriteButtonDidTap(ship: Ship) {
-        if FavouritesManager.shared.contains(ship) {
-            FavouritesManager.shared.remove(ship)
-        } else {
-            FavouritesManager.shared.add(ship)
-        }
+
+    // MARK: - Lifecycle Methods
+    func loadIfNeeded() async {
+        guard ships.isEmpty else { return }
+        await loadShips()
     }
-    
+
     func loadShips() async {
+        isLoading = true
+        defer { isLoading = false }
+
         do {
             let dtoShips = try await service.fetchShips()
-            ships = dtoShips.map { Ship(dto: $0, isFavorite: false) }
+            ships = dtoShips.map { dto in
+                Ship(
+                    dto: dto,
+                    isFavorite: favouritesManager.contains(dto.id)
+                )
+            }
         } catch {
-            print(error)
+            print("Error loading ships:", error)
         }
     }
-    
-    func initialLoad() async {
-        isLoading = true
-        await loadShips()
-        isLoading = false
+
+    // MARK: - Actions
+    func toggleFavourite(for ship: Ship) {
+        if favouritesManager.contains(ship.id) {
+            favouritesManager.remove(ship.id)
+        } else {
+            favouritesManager.add(ship.id)
+        }
+
+        updateFavouriteState(for: ship.id)
+    }
+
+    // MARK: - Private Helpers
+    private func updateFavouriteState(for id: String) {
+        guard let index = ships.firstIndex(where: { $0.id == id }) else { return }
+        ships[index].isFavorite.toggle()
     }
 }
