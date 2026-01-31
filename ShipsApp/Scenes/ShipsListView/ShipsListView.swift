@@ -8,37 +8,43 @@
 import SwiftUI
 
 struct ShipsListView: View {
-    
+
     @StateObject private var viewModel = ShipsViewModel()
-    @State private var navigationPath = NavigationPath()
-    
+
     var body: some View {
-        content
-            .task {
-                if viewModel.ships.isEmpty {
-                    await viewModel.initialLoad()
-                }
+        NavigationStack {
+            VStack(spacing: 12) {
+                searchBar
+                content
             }
-        
-    }
-    
-    private var content: some View {
-        VStack(spacing: 12) {
-            searchBar
-            
-            if viewModel.isLoading {
-                skeletonList
-            } else {
-                shipsList
+            .navigationTitle("Ships")
+            .navigationDestination(for: Ship.self) { ship in
+                ShipDetailsView(ship: ship)
+            }
+            .task {
+                await loadIfNeeded()
             }
         }
     }
-    
+
+    // MARK: - Content
+
+    @ViewBuilder
+    private var content: some View {
+        if viewModel.isLoading {
+            skeletonView
+        } else {
+            shipsView
+        }
+    }
+
+    // MARK: - Search Bar
+
     private var searchBar: some View {
-        HStack {
+        HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
-            
+
             TextField("Search Ships", text: $viewModel.searchText)
         }
         .padding()
@@ -46,39 +52,53 @@ struct ShipsListView: View {
         .cornerRadius(10)
         .padding(.horizontal)
     }
-    
-    private var skeletonList: some View {
-        List(0..<3, id: \.self) { _ in
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray.opacity(0.3))
-                .aspectRatio(16 / 9, contentMode: .fit)
-                .frame(maxHeight: 220)
-                .redacted(reason: .placeholder)
-            
+
+    // MARK: - Skeleton
+
+    private var skeletonView: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(0..<3, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.3))
+                        .aspectRatio(16 / 9, contentMode: .fit)
+                        .frame(maxHeight: 220)
+                        .redacted(reason: .placeholder)
+                }
+            }
+            .padding(.horizontal)
         }
-        .listStyle(.plain)
     }
-    
-    private var shipsList: some View {
-        NavigationStack(path: $navigationPath) {
-            List(viewModel.filteredShips) { ship in
-                ShipCardView(ship: ship)
-                    .makeWholeViewTapable()
-                    .onTapGesture {
-                        navigationPath.append(ship)
+
+    // MARK: - Ships List
+
+    private var shipsView: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(viewModel.filteredShips) { ship in
+                    NavigationLink(value: ship) {
+                        ShipCardView(ship: ship)
                     }
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .buttonStyle(.plain)
+                }
             }
-            .listStyle(.plain)
-            .refreshable {
-                await viewModel.loadShips()
-            }
+            .padding(.horizontal)
         }
+        .refreshable {
+            await viewModel.loadShips()
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func loadIfNeeded() async {
+        guard viewModel.ships.isEmpty else { return }
+        await viewModel.initialLoad()
     }
 }
+
 struct ShipCardView: View {
-    
+    @StateObject private var viewModel = ShipsViewModel()
     let ship: Ship
     
     var body: some View {
@@ -90,41 +110,59 @@ struct ShipCardView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(ship.name), \(ship.type), \(ship.status)")
+            .accessibilityLabel(accessibilityText)
     }
-    
+
     private var infoOverlay: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(ship.name)
                     .font(.headline)
-                
+
                 Text(ship.type)
                     .font(.subheadline)
             }
             
             Spacer()
-            
+
             VStack(alignment: .trailing, spacing: 8) {
-                Image(systemName: ship.isFavorite ? "heart.fill" : "heart")
-                    .foregroundColor(ship.isFavorite ? .red : .white)
                 
+favouriteButton(with: ship)
                 Text(ship.status)
                     .font(.subheadline)
             }
         }
         .padding()
         .foregroundColor(.white)
-        .background(
-            LinearGradient(
-                colors: [.black.opacity(0.6), .clear],
-                startPoint: .bottom,
-                endPoint: .top
-            )
+        .background(gradientBackground)
+    }
+    
+    private func favouriteButton(with ship: Ship)-> some View {
+        Button {
+            viewModel.favouriteButtonDidTap(ship: ship)
+        } label: {
+            Image(systemName: FavouritesManager.shared.contains(ship) ? "heart.fill" : "heart")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .foregroundColor(.red)
+        }
+        .buttonStyle(.plain)
+        .padding()
+    }
+
+    private var gradientBackground: some View {
+        LinearGradient(
+            colors: [.black.opacity(0.6), .clear],
+            startPoint: .bottom,
+            endPoint: .top
         )
     }
-}
 
+    private var accessibilityText: String {
+        "\(ship.name), \(ship.type), \(ship.status)"
+    }
+}
 
 #Preview {
     ShipsListView()

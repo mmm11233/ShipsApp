@@ -10,48 +10,44 @@ import SwiftUI
 
 struct ShipDetailsView: View {
     
-    @StateObject var viewModel: ShipDetailsViewModel
+    let ship: Ship
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 
-                ShipHeaderImageView(imageURL: viewModel.ship.imageURL)
+                ShipHeaderImageView(imageURL: ship.image)
                 
-                ShipTitleView(name: viewModel.ship.name)
-                
-                ForEach(viewModel.rows) { row in
-                    KeyValueRowView(row: row)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(ship.name)
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    Text(ship.type)
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                    
+                    Divider()
+                    
+                    detailRow(title: "Status", value: ship.status)
                 }
+                .padding(.horizontal)
             }
-            .padding()
         }
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
     }
-}
-
-struct KeyValueRowView: View {
     
-    let row: KeyValueRow
-    
-    var body: some View {
-        HStack(alignment: .top) {
-            Text(row.title)
+    private func detailRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
                 .foregroundColor(.gray)
             
             Spacer()
             
-            if row.isLink, let url = URL(string: row.value) {
-                Link(row.value, destination: url)
-                    .multilineTextAlignment(.trailing)
-            } else {
-                Text(row.value)
-                    .multilineTextAlignment(.trailing)
-            }
+            Text(value)
+                .fontWeight(.medium)
         }
-        .font(.system(size: 16))
-        .padding(.vertical, 6)
     }
 }
 
@@ -60,32 +56,10 @@ struct ShipHeaderImageView: View {
     let imageURL: String?
     
     var body: some View {
-        AsyncImage(url: URL(string: imageURL ?? "")) { image in
-            image
-                .resizable()
-                .scaledToFill()
-        } placeholder: {
-            Image(systemName: "photo")
-                .resizable()
-                .scaledToFit()
-                .padding(40)
-                .foregroundColor(.gray)
-        }
-        .frame(height: 220)
-        .frame(maxWidth: .infinity)
-        .background(Color.gray.opacity(0.2))
-        .clipped()
-    }
-}
-
-struct ShipTitleView: View {
-    let name: String
-    
-    var body: some View {
-        Text(name)
-            .font(.title3)
-            .fontWeight(.semibold)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        RemoteImageView(urlString: imageURL)
+            .aspectRatio(16 / 9, contentMode: .fit)
+            .frame(maxHeight: 220)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal)
     }
 }

@@ -33,6 +33,15 @@ final class ShipsViewModel: ObservableObject {
         }
     }
     
+    //MARK: - Actions
+    func favouriteButtonDidTap(ship: Ship) {
+        if FavouritesManager.shared.contains(ship) {
+            FavouritesManager.shared.remove(ship)
+        } else {
+            FavouritesManager.shared.add(ship)
+        }
+    }
+    
     func loadShips() async {
         do {
             let dtoShips = try await service.fetchShips()
