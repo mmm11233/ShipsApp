@@ -14,14 +14,15 @@ struct ShipDetailsView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 24) {
                 
+                // MARK: - Header Image
                 ShipHeaderImageView(imageURL: ship.image)
                 
-                VStack(alignment: .leading, spacing: 8) {
+                // MARK: - Ship Info
+                VStack(alignment: .leading, spacing: 12) {
                     Text(ship.name)
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.largeTitle.bold())
                     
                     Text(ship.type)
                         .font(.title3)
@@ -29,30 +30,63 @@ struct ShipDetailsView: View {
                     
                     Divider()
                     
-                    detailRow(title: "Status", value: ship.status)
+                    // MARK: - Details
+                    detailSection
                 }
                 .padding(.horizontal)
             }
+            .padding(.vertical)
         }
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    private func detailRow(title: String, value: String) -> some View {
+    // MARK: - Details Section
+    private var detailSection: some View {
+        VStack(spacing: 12) {
+            DetailRow(title: "Status", value: ship.status)
+            DetailRow(title: "Port", value: ship.port ?? "Unknown")
+            DetailRow(title: "Year", value: ship.yearBuilt.map(String.init) ?? "Unknown")
+            DetailRow(title: "MMSI", value: ship.mmsi.map(String.init) ?? "Unknown")
+            DetailRow(title: "URL", value: ship.linkURL?.absoluteString ?? "No URL", url: ship.linkURL)
+        }
+    }
+}
+
+// MARK: - Reusable Detail Row
+struct DetailRow: View {
+    let title: String
+    let value: String
+    let url: URL?
+    
+    init(title: String, value: String, url: URL? = nil) {
+        self.title = title
+        self.value = value
+        self.url = url
+    }
+    
+    var body: some View {
         HStack {
             Text(title)
                 .foregroundColor(.gray)
             
             Spacer()
             
-            Text(value)
-                .fontWeight(.medium)
+            if let url = url {
+                Link(value, destination: url)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.trailing)
+            } else {
+                Text(value)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.trailing)
+            }
         }
     }
 }
 
+// MARK: - Ship Header Image
 struct ShipHeaderImageView: View {
-    
     let imageURL: String?
     
     var body: some View {
@@ -61,5 +95,6 @@ struct ShipHeaderImageView: View {
             .frame(maxHeight: 220)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal)
+            .shadow(radius: 5, y: 2)
     }
 }

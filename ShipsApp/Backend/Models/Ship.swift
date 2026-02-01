@@ -14,6 +14,12 @@ struct ShipDTO: Decodable {
     let active: Bool
     let image: String?
     let status: String?
+    let home_port: String?
+    let year_built: Int?
+    let mass_kg: Int?
+    let mmsi: Int?
+    let link: String?
+    
 }
 
 struct Ship: Identifiable, Hashable {
@@ -23,7 +29,11 @@ struct Ship: Identifiable, Hashable {
     let status: String
     var isFavorite: Bool
     let image: String?
-
+    let port: String?
+    let yearBuilt: Int?
+    let massKg: Int?
+    let mmsi: Int?
+    let linkURL: URL?
 }
 
 
@@ -35,5 +45,11 @@ extension Ship {
         self.status = dto.active ? "Active" : "Inactive"
         self.isFavorite = isFavorite
         self.image = dto.image
+        self.linkURL = dto.link.flatMap { URL(string: $0) }
+        
+        self.port = dto.home_port
+        self.yearBuilt = dto.year_built
+        self.massKg = dto.mass_kg
+        self.mmsi = dto.mmsi
     }
 }

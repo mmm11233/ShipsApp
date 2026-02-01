@@ -84,11 +84,16 @@ class DataController: ObservableObject {
             return results.map { obj in
                 Ship(
                     id: obj.id ?? "",
-                    name: obj.name ?? "",
-                    type: obj.type ?? "",
-                    status: obj.statuse ?? "",
-                    isFavorite: true,
-                    image: obj.image
+                        name: obj.name ?? "",
+                        type: obj.type ?? "",
+                        status: obj.statuse ?? "",
+                        isFavorite: true,
+                        image: obj.image,
+                        port: obj.port,
+                        yearBuilt: Int(obj.year),
+                        massKg: Int(obj.mass),
+                        mmsi: Int(obj.mission),
+                        linkURL: obj.link.flatMap { URL(string: $0) }
                 )
             }
         } catch {
