@@ -13,7 +13,7 @@ class DataController: ObservableObject {
     let container: NSPersistentContainer
     
     init() {
-        container = NSPersistentContainer(name: "Ship") // your xcdatamodeld name
+        container = NSPersistentContainer(name: "Ship") 
         container.loadPersistentStores { description, error in
             if let error = error {
                 print("Core Data failed to load: \(error.localizedDescription)")
