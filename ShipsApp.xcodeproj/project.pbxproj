@@ -6,8 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		395678072F2F8C79004394F2 /* Ship.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 395678052F2F8C79004394F2 /* Ship.xcdatamodeld */; };
+		39B081432F2AD08100846F25 /* NetworkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 39B081422F2AD08100846F25 /* NetworkKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		391CF8812F27F2FA00EA6DB1 /* ShipsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShipsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		395678062F2F8C79004394F2 /* Ship.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ship.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				39B081432F2AD08100846F25 /* NetworkKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,6 +39,7 @@
 		391CF8782F27F2FA00EA6DB1 = {
 			isa = PBXGroup;
 			children = (
+				395678052F2F8C79004394F2 /* Ship.xcdatamodeld */,
 				391CF8832F27F2FA00EA6DB1 /* ShipsApp */,
 				391CF8822F27F2FA00EA6DB1 /* Products */,
 			);
@@ -65,6 +73,7 @@
 			);
 			name = ShipsApp;
 			packageProductDependencies = (
+				39B081422F2AD08100846F25 /* NetworkKit */,
 			);
 			productName = ShipsApp;
 			productReference = 391CF8812F27F2FA00EA6DB1 /* ShipsApp.app */;
@@ -78,7 +87,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					391CF8802F27F2FA00EA6DB1 = {
 						CreatedOnToolsVersion = 26.0.1;
@@ -94,6 +103,9 @@
 			);
 			mainGroup = 391CF8782F27F2FA00EA6DB1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				39B081412F2AD08100846F25 /* XCRemoteSwiftPackageReference "NetworkKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 391CF8822F27F2FA00EA6DB1 /* Products */;
 			projectDirPath = "";
@@ -119,6 +131,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				395678072F2F8C79004394F2 /* Ship.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +197,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -241,6 +255,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -332,6 +347,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		39B081412F2AD08100846F25 /* XCRemoteSwiftPackageReference "NetworkKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mmm11233/NetworkKit.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		39B081422F2AD08100846F25 /* NetworkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 39B081412F2AD08100846F25 /* XCRemoteSwiftPackageReference "NetworkKit" */;
+			productName = NetworkKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		395678052F2F8C79004394F2 /* Ship.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				395678062F2F8C79004394F2 /* Ship.xcdatamodel */,
+			);
+			currentVersion = 395678062F2F8C79004394F2 /* Ship.xcdatamodel */;
+			path = Ship.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 391CF8792F27F2FA00EA6DB1 /* Project object */;
 }
