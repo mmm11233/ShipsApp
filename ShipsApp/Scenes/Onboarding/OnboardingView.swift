@@ -36,7 +36,7 @@ struct OnboardingView: View {
                     }
                     
                     NavigationLink {
-                        UIKitShipsViewControllerWrapper()
+                        UIKitShipsWrapper()
                     } label: {
                         Text("UIKit version")
                             .font(.headline)
@@ -67,38 +67,18 @@ struct SwiftUIShipsView: View {
     }
 }
 
-// MARK: - UIKit Version Wrapper
-struct UIKitShipsViewControllerWrapper: UIViewControllerRepresentable {
+// MARK: - UIKit Wrapper for SwiftUI NavigationLink
+struct UIKitShipsWrapper: UIViewControllerRepresentable {
     
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = UIKitShipsViewController()
-        return vc
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let dataController = DataController()
+        let viewModel = ShipsViewModel(dataController: dataController)
+        let shipsVC = ShipsListViewController(viewModel: viewModel)
+        let nav = UINavigationController(rootViewController: shipsVC)
+        return nav
     }
     
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
-}
-
-// MARK: - UIKit Version Placeholder
-class UIKitShipsViewController: UIViewController {
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        view.backgroundColor = .systemBackground
-        
-        let label = UILabel()
-        label.text = "UIKit Version Page"
-        label.font = .systemFont(ofSize: 24, weight: .bold)
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-    }
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
 }
 
 // MARK: - Preview
