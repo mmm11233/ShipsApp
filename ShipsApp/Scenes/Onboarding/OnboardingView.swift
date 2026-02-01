@@ -9,6 +9,7 @@ import SwiftUI
 import CoreData
 
 struct OnboardingView: View {
+    @State private var showUIKitVersion = false
     
     var body: some View {
         NavigationStack {
@@ -18,48 +19,60 @@ struct OnboardingView: View {
                 Text("Welcome to ShipsApp")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal)
                 
                 Spacer()
                 
                 // MARK: - Buttons
                 VStack(spacing: 16) {
+                    // SwiftUI version
                     NavigationLink {
                         SwiftUIShipsView()
                     } label: {
-                        Text("SwiftUI version")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
+                        Text("SwiftUI Version")
+                            .modifier(OnboardingButtonStyle(color: .blue))
                     }
                     
-                    NavigationLink {
-                        UIKitShipsWrapper()
+                    // UIKit version
+                    Button {
+                        showUIKitVersion = true
                     } label: {
-                        Text("UIKit version")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .cornerRadius(12)
+                        Text("UIKit Version")
+                            .modifier(OnboardingButtonStyle(color: .green))
                     }
                 }
                 .padding(.horizontal, 40)
                 
                 Spacer()
             }
-            .navigationTitle("Onboarding")
             .navigationBarHidden(true)
+            .fullScreenCover(isPresented: $showUIKitVersion) {
+                UIKitShipsWrapper()
+                    .ignoresSafeArea()
+            }
         }
     }
 }
 
-// MARK: - SwiftUI Version Placeholder
+// MARK: - Button style modifier for consistent look
+private struct OnboardingButtonStyle: ViewModifier {
+    let color: Color
+    
+    func body(content: Content) -> some View {
+        content
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(color)
+            .cornerRadius(12)
+            .shadow(color: color.opacity(0.3), radius: 6, y: 4)
+    }
+}
+
+// MARK: - SwiftUI Version (Mvvm)
 struct SwiftUIShipsView: View {
-        @StateObject private var dataController = DataController()
+    @StateObject private var dataController = DataController()
 
     var body: some View {
         ShipsListView(dataController: dataController)
@@ -67,14 +80,17 @@ struct SwiftUIShipsView: View {
     }
 }
 
-// MARK: - UIKit Wrapper for SwiftUI NavigationLink
+// MARK: - UIKit Wrapper for full screen UIKit version
 struct UIKitShipsWrapper: UIViewControllerRepresentable {
-    
+
     func makeUIViewController(context: Context) -> UINavigationController {
         let dataController = DataController()
         let viewModel = ShipsViewModel(dataController: dataController)
         let shipsVC = ShipsListViewController(viewModel: viewModel)
         let nav = UINavigationController(rootViewController: shipsVC)
+        
+        // optional: transparent nav bar
+        nav.navigationBar.prefersLargeTitles = true
         return nav
     }
     
@@ -85,3 +101,4 @@ struct UIKitShipsWrapper: UIViewControllerRepresentable {
 #Preview {
     OnboardingView()
 }
+

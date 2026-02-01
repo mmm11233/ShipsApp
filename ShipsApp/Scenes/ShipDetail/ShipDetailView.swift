@@ -26,8 +26,6 @@ struct ShipDetailsView: View {
             .padding(.vertical)
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle(ship.name)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

@@ -161,6 +161,7 @@ extension ShipsListViewController: UITableViewDelegate {
         let detailsView = ShipDetailsView(ship: ship)
         
         let hostingController = UIHostingController(rootView: detailsView)
+        hostingController.title = ship.name
         hostingController.navigationItem.largeTitleDisplayMode = .never
         
         navigationController?.pushViewController(hostingController, animated: true)
