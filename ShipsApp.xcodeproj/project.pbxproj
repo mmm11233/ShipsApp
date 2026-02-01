@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		394A15662F2EB1D900BF56F7 /* Ship.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 394A15642F2EB1D900BF56F7 /* Ship.xcdatamodeld */; };
+		395678072F2F8C79004394F2 /* Ship.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 395678052F2F8C79004394F2 /* Ship.xcdatamodeld */; };
 		39B081432F2AD08100846F25 /* NetworkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 39B081422F2AD08100846F25 /* NetworkKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		391CF8812F27F2FA00EA6DB1 /* ShipsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShipsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		394A15652F2EB1D900BF56F7 /* Ship.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ship.xcdatamodel; sourceTree = "<group>"; };
+		395678062F2F8C79004394F2 /* Ship.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ship.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,7 +39,7 @@
 		391CF8782F27F2FA00EA6DB1 = {
 			isa = PBXGroup;
 			children = (
-				394A15642F2EB1D900BF56F7 /* Ship.xcdatamodeld */,
+				395678052F2F8C79004394F2 /* Ship.xcdatamodeld */,
 				391CF8832F27F2FA00EA6DB1 /* ShipsApp */,
 				391CF8822F27F2FA00EA6DB1 /* Products */,
 			);
@@ -131,7 +131,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				394A15662F2EB1D900BF56F7 /* Ship.xcdatamodeld in Sources */,
+				395678072F2F8C79004394F2 /* Ship.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,12 +368,12 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		394A15642F2EB1D900BF56F7 /* Ship.xcdatamodeld */ = {
+		395678052F2F8C79004394F2 /* Ship.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				394A15652F2EB1D900BF56F7 /* Ship.xcdatamodel */,
+				395678062F2F8C79004394F2 /* Ship.xcdatamodel */,
 			);
-			currentVersion = 394A15652F2EB1D900BF56F7 /* Ship.xcdatamodel */;
+			currentVersion = 395678062F2F8C79004394F2 /* Ship.xcdatamodel */;
 			path = Ship.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
