@@ -23,7 +23,7 @@ final class ShipsViewModel: ObservableObject {
 
     // MARK: - Init
     init(
-        service: ShipsServiceProtocol = ShipsService(),
+        service: ShipsServiceProtocol,
         persistence: PersistenceContainerProtocol
     ) {
         self.service = service
@@ -50,8 +50,16 @@ final class ShipsViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let items = try await service.fetchShips()
-            let favourites = Set(persistence.fetchAllFavourites().map(\.id))
+            let items: [Ship]
+            if await ReachabilityManager.shared.isInternetAvailable() {
+                items = try await Task.detached(priority: .userInitiated) { [service] in
+                    try await service.fetchShips()
+                }.value
+            } else {
+                items = try await persistence.fetchShips()
+            }
+            
+            let favourites = try await Set(persistence.fetchShips().map(\.id))
             
             ships = items.map { item -> Ship in
                 var mutableItem = item
@@ -60,7 +68,7 @@ final class ShipsViewModel: ObservableObject {
                 return mutableItem
             }
         } catch {
-            print("Ship load failed:", error) //TODO: aq alerti amoagde
+            print("Ship load failed:", error)
         }
     }
 

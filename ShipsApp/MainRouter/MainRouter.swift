@@ -30,7 +30,8 @@ final class MainRouter {
     // MARK: - SwiftUI version
     func goToShipsListSwiftUI() {
         let persistence = PersistenceContainer()
-        let viewModel = ShipsViewModel(persistence: persistence)
+        let service = ShipsService()
+        let viewModel = ShipsViewModel(service: service, persistence: persistence)
         
         let listView = ShipsListView(
             viewModel: viewModel,
@@ -48,7 +49,8 @@ final class MainRouter {
     // MARK: - UIKit version
     func goToShipsListUIKit() {
         let persistence = PersistenceContainer()
-        let viewModel = ShipsViewModel(persistence: persistence)
+        let service = ShipsService()
+        let viewModel = ShipsViewModel(service: service, persistence: persistence)
         let controller = ShipsListViewController(viewModel: viewModel, router: self)
         
         controller.navigationItem.largeTitleDisplayMode = .automatic

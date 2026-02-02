@@ -12,39 +12,42 @@ struct ShipsListView: View {
     let onShipTap: (Ship) -> Void
     
     init(viewModel: ShipsViewModel, onShipTap: @escaping (Ship) -> Void) {
-        self.viewModel = viewModel
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
         self.onShipTap = onShipTap
     }
     
     var body: some View {
-        NavigationStack {
+        VStack {
             content
-                .searchable(text: $viewModel.searchText, prompt: "Search Ships")
-                .refreshable { await viewModel.loadShips() }
         }
-        .task { await viewModel.loadIfNeeded() }
+        .searchable(text: $viewModel.searchText, prompt: "Search Ships")
         .background(DS.Colors.background)
+        .overlay {
+            if viewModel.isLoading {
+                ProgressView("Loading Ships...")
+                    .progressViewStyle(.circular)
+                    .padding()
+                    .foregroundStyle(DS.Colors.background)
+            }
+        }
+        .refreshable { await viewModel.loadShips() }
+        .onViewDidLoad {
+            await viewModel.loadIfNeeded()
+        }
     }
     
-    @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading && viewModel.ships.isEmpty {
-            ProgressView("Loading Ships...")
-                .progressViewStyle(.circular)
-                .padding()
-        } else {
-            ScrollView {
-                LazyVStack(spacing: DS.Spacing.medium) {
-                    ForEach(viewModel.filteredShips) { ship in
-                        ShipCardView(
-                            ship: ship,
-                            onFavouriteTap: { viewModel.toggleFavourite(for: ship) }
-                        )
-                        .onTapGesture { onShipTap(ship) }
-                    }
+        ScrollView {
+            LazyVStack(spacing: DS.Spacing.medium) {
+                ForEach(viewModel.filteredShips) { ship in
+                    ShipCardView(
+                        ship: ship,
+                        onFavouriteTap: { viewModel.toggleFavourite(for: ship) }
+                    )
+                    .onTapGesture { onShipTap(ship) }
                 }
-                .padding(.horizontal)
             }
+            .padding(.horizontal)
         }
     }
 }
@@ -59,7 +62,7 @@ struct ShipCardView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             RemoteImageView(urlString: ship.image)
-                .aspectRatio(16 / 9, contentMode: .fit)
+                .aspectRatio(16/9, contentMode: .fit)
             
             HStack {
                 VStack(alignment: .leading) {

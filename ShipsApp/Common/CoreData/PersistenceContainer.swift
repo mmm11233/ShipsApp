@@ -10,10 +10,10 @@ import CoreData
 import Combine
 
 // MARK: - Protocol for CoreData abstraction
-protocol PersistenceContainerProtocol {
+protocol PersistenceContainerProtocol: ShipsServiceProtocol {
     func toggleFavourite(for ship: Ship)
     func isFavourite(shipID: String) -> Bool
-    func fetchAllFavourites() -> [Ship]
+    func fetchShips() async throws -> [Ship]
 }
 
 // MARK: - Implementation
@@ -61,8 +61,7 @@ final class PersistenceContainer: ObservableObject, PersistenceContainerProtocol
             return false
         }
     }
-
-    func fetchAllFavourites() -> [Ship] {
+    func fetchShips() async throws -> [Ship] {
         let request: NSFetchRequest<ShipObj> = ShipObj.fetchRequest()
         do {
             return try context.fetch(request).compactMap(mapToDomain(_:))

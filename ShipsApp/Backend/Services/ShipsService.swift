@@ -27,7 +27,10 @@ final class ShipsService: ShipsServiceProtocol {
                 responseType: [Ship].self
             )
         } catch {
-            print("Ship Fetch Failed:", error.localizedDescription)
+            let nsError = error as NSError
+            if nsError.domain != NSURLErrorDomain || nsError.code != NSURLErrorCancelled {
+                print("Ship Fetch Failed:", error.localizedDescription)
+            }
             throw error
         }
     }
