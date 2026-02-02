@@ -14,6 +14,7 @@ class ShipsListViewController: UIViewController {
     
     // MARK: - Properties
     private let viewModel: ShipsViewModel
+    private weak var router: MainRouter?
     private let tableView = UITableView()
     private let searchController = UISearchController(searchResultsController: nil)
     private var cancellables = Set<AnyCancellable>()
@@ -24,8 +25,9 @@ class ShipsListViewController: UIViewController {
     }
     
     // MARK: - Init
-    init(viewModel: ShipsViewModel) {
+    init(viewModel: ShipsViewModel, router: MainRouter) {
         self.viewModel = viewModel
+        self.router = router
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -157,14 +159,7 @@ extension ShipsListViewController: UITableViewDelegate {
                    didSelectRowAt indexPath: IndexPath) {
         guard !viewModel.isLoading, !ships.isEmpty else { return }
         let ship = ships[indexPath.row]
-        
-        let detailsView = ShipDetailsView(ship: ship)
-        
-        let hostingController = UIHostingController(rootView: detailsView)
-        hostingController.title = ship.name
-        hostingController.navigationItem.largeTitleDisplayMode = .never
-        
-        navigationController?.pushViewController(hostingController, animated: true)
+        router?.goToShipDetails(ship: ship)
         
         tableView.deselectRow(at: indexPath, animated: true)
     }

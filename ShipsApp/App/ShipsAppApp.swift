@@ -13,7 +13,7 @@ struct ShipsAppApp: App {
     
     var body: some Scene {
         WindowGroup {
-            OnboardingView()
+            MainRouterRootView()
         }
     }
 }

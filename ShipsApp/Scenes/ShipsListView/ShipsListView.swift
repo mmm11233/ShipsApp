@@ -10,24 +10,20 @@ import SwiftUI
 struct ShipsListView: View {
     
     @ObservedObject var viewModel: ShipsViewModel
+    let onShipTap: (Ship) -> Void
 
-    init(dataController: DataController) {
-            self.viewModel = ShipsViewModel(dataController: dataController)
-        }
+    init(dataController: DataController, onShipTap: @escaping (Ship) -> Void) {
+        self.viewModel = ShipsViewModel(dataController: dataController)
+        self.onShipTap = onShipTap
+    }
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: Layout.verticalSpacing) {
-                searchBar
-                content
-            }
-            .navigationTitle("Ships")
-            .navigationDestination(for: Ship.self) {
-                ShipDetailsView(ship: $0)
-            }
-            .task {
-                await viewModel.loadIfNeeded()
-            }
+        VStack(spacing: Layout.verticalSpacing) {
+            searchBar
+            content
+        }
+        .task {
+            await viewModel.loadIfNeeded()
         }
     }
     
@@ -72,15 +68,16 @@ struct ShipsListView: View {
         ScrollView {
             LazyVStack(spacing: Layout.cardSpacing) {
                 ForEach(viewModel.filteredShips) { ship in
-                    NavigationLink(value: ship) {
-                        ShipCardView(
-                            ship: ship,
-                            onFavouriteTap: {
-                                viewModel.toggleFavourite(for: ship)
-                            }
-                        )
+                    ShipCardView(
+                        ship: ship,
+                        onFavouriteTap: {
+                            viewModel.toggleFavourite(for: ship)
+                        }
+                    )
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onShipTap(ship)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal)
