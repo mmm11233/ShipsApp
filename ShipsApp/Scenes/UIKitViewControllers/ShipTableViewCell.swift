@@ -7,46 +7,36 @@
 
 import UIKit
 
-class ShipTableViewCell: UITableViewCell {
-    
+final class ShipTableViewCell: UITableViewCell {
+    // MARK: - Properties
     static let identifier = "ShipTableViewCell"
-    
     private let containerView = UIView()
     private let shipImageView = UIImageView()
     private let nameLabel = UILabel()
     private let typeLabel = UILabel()
     private let statusLabel = UILabel()
     private let favouriteButton = UIButton(type: .system)
-    
     private var favouriteAction: (() -> Void)?
+    private var shimmerLayer: CAGradientLayer?
     
     // MARK: - Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
-        backgroundColor = .clear
         selectionStyle = .none
-        
-        setupViews()
-        layoutViews()
+        backgroundColor = .clear
+        setupLayout()
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder: NSCoder) { fatalError("init(coder:) not implemented") }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         shipImageView.image = nil
-        shipImageView.backgroundColor = .clear
-        nameLabel.text = nil
-        typeLabel.text = nil
-        statusLabel.text = nil
-        nameLabel.backgroundColor = .clear
-        typeLabel.backgroundColor = .clear
-        statusLabel.backgroundColor = .clear
-        favouriteButton.isHidden = false
+        shimmerLayer?.removeFromSuperlayer()
+        shimmerLayer = nil
     }
     
-    // MARK: - Public
+    // MARK: - Public API
     func configure(with ship: Ship, favouriteAction: @escaping () -> Void) {
         self.favouriteAction = favouriteAction
         
@@ -54,55 +44,40 @@ class ShipTableViewCell: UITableViewCell {
         typeLabel.text = ship.type
         statusLabel.text = ship.status
         
-        let heartImage = UIImage(systemName: ship.isFavorite ? "heart.fill" : "heart")
+        let heartImage = UIImage(systemName: ship.isFavorite == true ? "heart.fill" : "heart")
         favouriteButton.setImage(heartImage, for: .normal)
-        favouriteButton.tintColor = .red
+        favouriteButton.tintColor = .systemRed
         
-        shipImageView.image = UIImage(systemName: "photo") 
-        
+        // Placeholder color
+        shipImageView.backgroundColor = .secondarySystemFill
         if let urlString = ship.image, let url = URL(string: urlString) {
             RemoteImageLoader.shared.load(url: url) { [weak self] image in
-                guard let self = self else { return }
                 DispatchQueue.main.async {
-                    self.shipImageView.image = image ?? UIImage(systemName: "photo")
+                    self?.shipImageView.image = image ?? UIImage(systemName: "photo")
+                    self?.shipImageView.backgroundColor = .clear
                 }
             }
         }
     }
     
     func configureSkeleton() {
-        shipImageView.backgroundColor = .systemGray5
-        shipImageView.image = nil
-        
-        nameLabel.text = nil
-        typeLabel.text = nil
-        statusLabel.text = nil
-        
-        nameLabel.backgroundColor = .systemGray5
-        typeLabel.backgroundColor = .systemGray5
-        statusLabel.backgroundColor = .systemGray5
-        
+        nameLabel.text = nil; typeLabel.text = nil; statusLabel.text = nil
         favouriteButton.isHidden = true
+        startShimmer()
     }
     
-    // MARK: - Actions
-    @objc private func favouriteButtonTapped() {
-        favouriteAction?()
-    }
-    
-    // MARK: - Layout setup
-    private func setupViews() {
+    // MARK: - Layout Setup
+    private func setupLayout() {
         containerView.backgroundColor = .secondarySystemBackground
         containerView.layer.cornerRadius = 16
-        containerView.layer.masksToBounds = true
-        
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.1
-        layer.shadowRadius = 6
-        layer.shadowOffset = CGSize(width: 0, height: 4)
-        layer.masksToBounds = false
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOpacity = 0.1
+        containerView.layer.shadowRadius = 6
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        containerView.layer.masksToBounds = false
         
         shipImageView.contentMode = .scaleAspectFill
+        shipImageView.layer.cornerRadius = 16
         shipImageView.clipsToBounds = true
         
         nameLabel.font = .boldSystemFont(ofSize: 18)
@@ -111,19 +86,12 @@ class ShipTableViewCell: UITableViewCell {
         statusLabel.font = .systemFont(ofSize: 14)
         statusLabel.textColor = .secondaryLabel
         
-        favouriteButton.addTarget(self,
-                                  action: #selector(favouriteButtonTapped),
-                                  for: .touchUpInside)
+        favouriteButton.addTarget(self, action: #selector(favouriteTapped), for: .touchUpInside)
         
         contentView.addSubview(containerView)
-        containerView.addSubview(shipImageView)
-        containerView.addSubview(nameLabel)
-        containerView.addSubview(typeLabel)
-        containerView.addSubview(statusLabel)
-        containerView.addSubview(favouriteButton)
-    }
-    
-    private func layoutViews() {
+        [shipImageView, nameLabel, typeLabel, statusLabel, favouriteButton]
+            .forEach(containerView.addSubview)
+        
         containerView.translatesAutoresizingMaskIntoConstraints = false
         shipImageView.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -158,5 +126,43 @@ class ShipTableViewCell: UITableViewCell {
             statusLabel.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -12),
             statusLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12)
         ])
+    }
+    
+    // MARK: - Actions
+    @objc private func favouriteTapped() {
+        // Simple spring bounce animation
+        UIView.animate(withDuration: 0.15,
+                       animations: {
+            self.favouriteButton.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        }) { _ in
+            UIView.animate(withDuration: 0.15) {
+                self.favouriteButton.transform = .identity
+            }
+        }
+        favouriteAction?()
+    }
+    
+    // MARK: - Shimmer animation
+    private func startShimmer() {
+        let gradient = CAGradientLayer()
+        gradient.colors = [
+            UIColor.systemGray5.cgColor,
+            UIColor.systemGray4.cgColor,
+            UIColor.systemGray5.cgColor
+        ]
+        gradient.startPoint = CGPoint(x: 0.0, y: 0.5)
+        gradient.endPoint = CGPoint(x: 1.0, y: 0.5)
+        gradient.frame = containerView.bounds
+        gradient.locations = [0.0, 0.5, 1.0]
+        
+        let animation = CABasicAnimation(keyPath: "locations")
+        animation.fromValue = [-1.0, -0.5, 0.0]
+        animation.toValue = [1.0, 1.5, 2.0]
+        animation.duration = 1.2
+        animation.repeatCount = .infinity
+        gradient.add(animation, forKey: "shimmer")
+        
+        containerView.layer.addSublayer(gradient)
+        shimmerLayer = gradient
     }
 }

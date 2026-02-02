@@ -6,59 +6,48 @@
 //
 
 import SwiftUI
-import CoreData
 
 struct OnboardingView: View {
     let onSwiftUIVersionTap: () -> Void
     let onUIKitVersionTap: () -> Void
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.large) {
             Spacer()
             
             Text("Welcome to ShipsApp")
-                .font(.largeTitle.bold())
+                .font(DS.Typography.heading())
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
             Spacer()
             
-            VStack(spacing: 16) {
-                Button(action: onSwiftUIVersionTap) {
-                    Text("SwiftUI Version")
-                        .modifier(OnboardingButtonStyle(color: .blue))
-                }
-                
-                Button(action: onUIKitVersionTap) {
-                    Text("UIKit Version")
-                        .modifier(OnboardingButtonStyle(color: .green))
-                }
+            VStack(spacing: DS.Spacing.medium) {
+                Button("SwiftUI Version", action: onSwiftUIVersionTap)
+                    .buttonStyle(OnboardingButton(color: DS.Colors.accent))
+                Button("UIKit Version", action: onUIKitVersionTap)
+                    .buttonStyle(OnboardingButton(color: DS.Colors.success))
             }
             .padding(.horizontal, 40)
             
             Spacer()
         }
+        .background(DS.Colors.background.ignoresSafeArea())
     }
 }
 
-// MARK: - Button style modifier for consistent look
-private struct OnboardingButtonStyle: ViewModifier {
+// MARK: - Button Style
+private struct OnboardingButton: ButtonStyle {
     let color: Color
-    
-    func body(content: Content) -> some View {
-        content
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .font(.headline)
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding()
             .background(color)
-            .cornerRadius(12)
-            .shadow(color: color.opacity(0.3), radius: 6, y: 4)
+            .cornerRadius(DS.Radius.medium)
+            .shadow(color: color.opacity(0.25), radius: 6, y: 4)
+            .opacity(configuration.isPressed ? 0.8 : 1)
     }
 }
-
-// MARK: - Preview
-#Preview {
-    OnboardingView(onSwiftUIVersionTap: {}, onUIKitVersionTap: {})
-}
-
