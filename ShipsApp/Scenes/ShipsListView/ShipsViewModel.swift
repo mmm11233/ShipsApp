@@ -1,33 +1,36 @@
 //
-//  ShipsListViewViewModel.swift
+//  ShipsViewModel.swift
 //  ShipsApp
 //
 //  Created by Mariam Joglidze on 30.01.26.
 //
 
-import SwiftUI
 import Foundation
 import Combine
 import NetworkKit
 
 @MainActor
 final class ShipsViewModel: ObservableObject {
-    
+
+    // MARK: - Published properties
     @Published var searchText: String = ""
     @Published private(set) var ships: [Ship] = []
-    @Published var isLoading = false
+    @Published var isLoading: Bool = false
 
+    // MARK: - Dependencies
     private let service: ShipsServiceProtocol
-    private let dataController: DataController
+    private let persistence: PersistenceControllerProtocol
 
+    // MARK: - Init
     init(
-        service: ShipsServiceProtocol = ShipsService(client: NetworkClient()),
-        dataController: DataController
+        service: ShipsServiceProtocol = ShipsService(),
+        persistence: PersistenceControllerProtocol
     ) {
         self.service = service
-        self.dataController = dataController
+        self.persistence = persistence
     }
-    
+
+    // MARK: - Computed
     var filteredShips: [Ship] {
         guard !searchText.isEmpty else { return ships }
         return ships.filter {
@@ -35,42 +38,40 @@ final class ShipsViewModel: ObservableObject {
             $0.type.localizedCaseInsensitiveContains(searchText)
         }
     }
-    
+
+    // MARK: - Data loading
     func loadIfNeeded() async {
         guard ships.isEmpty else { return }
         await loadShips()
     }
-    
+
     func loadShips() async {
         isLoading = true
         defer { isLoading = false }
-
+        
         do {
-            let dtoShips = try await service.fetchShips()
-            ships = dtoShips.map { dto in
-                Ship(
-                    dto: dto,
-                    isFavorite: dataController.isFavourite(ship: Ship(dto: dto, isFavorite: false))
-                )
+            let items = try await service.fetchShips()
+            let favourites = Set(persistence.fetchAllFavourites().map(\.id))
+            
+            ships = items.map { item -> Ship in
+                var mutableItem = item
+                mutableItem.isFavorite = favourites.contains(item.id)
+                
+                return mutableItem
             }
         } catch {
-            print(error)
+            print("Ship load failed:", error) //TODO: aq alerti amoagde
         }
     }
-    
-    // MARK: - Favourites Actions
+
+    // MARK: - Favourites handling
     func toggleFavourite(for ship: Ship) {
-        if dataController.isFavourite(ship: ship) {
-            dataController.removeFavourite(ship: ship)
-        } else {
-            dataController.addFavourite(ship: ship)
-        }
-        
+        persistence.toggleFavourite(for: ship)
         updateFavouriteState(for: ship.id)
     }
 
     private func updateFavouriteState(for id: String) {
         guard let index = ships.firstIndex(where: { $0.id == id }) else { return }
-        ships[index].isFavorite.toggle()
+        ships[index].isFavorite?.toggle()
     }
 }

@@ -8,168 +8,100 @@
 import SwiftUI
 
 struct ShipsListView: View {
-    
     @ObservedObject var viewModel: ShipsViewModel
     let onShipTap: (Ship) -> Void
-
-    init(dataController: DataController, onShipTap: @escaping (Ship) -> Void) {
-        self.viewModel = ShipsViewModel(dataController: dataController)
+    
+    init(viewModel: ShipsViewModel, onShipTap: @escaping (Ship) -> Void) {
+        self.viewModel = viewModel
         self.onShipTap = onShipTap
     }
     
     var body: some View {
-        VStack(spacing: Layout.verticalSpacing) {
-            searchBar
+        NavigationStack {
             content
+                .searchable(text: $viewModel.searchText, prompt: "Search Ships")
+                .refreshable { await viewModel.loadShips() }
         }
-        .task {
-            await viewModel.loadIfNeeded()
-        }
+        .task { await viewModel.loadIfNeeded() }
+        .background(DS.Colors.background)
     }
     
-    // MARK: - Content
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading {
-            skeletonView
+        if viewModel.isLoading && viewModel.ships.isEmpty {
+            ProgressView("Loading Ships...")
+                .progressViewStyle(.circular)
+                .padding()
         } else {
-            shipsView
-        }
-    }
-    
-    // MARK: - Search Bar
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
-            
-            TextField("Search Ships", text: $viewModel.searchText)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cornerRadius))
-        .padding(.horizontal)
-    }
-    
-    // MARK: - Skeleton
-    private var skeletonView: some View {
-        ScrollView {
-            LazyVStack(spacing: Layout.cardSpacing) {
-                ForEach(0..<3, id: \.self) { _ in
-                    SkeletonCard()
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-    
-    // MARK: - Ships List
-    private var shipsView: some View {
-        ScrollView {
-            LazyVStack(spacing: Layout.cardSpacing) {
-                ForEach(viewModel.filteredShips) { ship in
-                    ShipCardView(
-                        ship: ship,
-                        onFavouriteTap: {
-                            viewModel.toggleFavourite(for: ship)
-                        }
-                    )
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onShipTap(ship)
+            ScrollView {
+                LazyVStack(spacing: DS.Spacing.medium) {
+                    ForEach(viewModel.filteredShips) { ship in
+                        ShipCardView(
+                            ship: ship,
+                            onFavouriteTap: { viewModel.toggleFavourite(for: ship) }
+                        )
+                        .onTapGesture { onShipTap(ship) }
                     }
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
-        }
-        .refreshable {
-            await viewModel.loadShips()
         }
     }
 }
 
-// MARK: - SkeletonCard
-struct SkeletonCard: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 12)
-            .fill(Color.gray.opacity(0.3))
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .frame(maxHeight: 220)
-            .redacted(reason: .placeholder)
-    }
-}
-
-// MARK: - Layout
-private enum Layout {
-    static let verticalSpacing: CGFloat = 12
-    static let cardSpacing: CGFloat = 16
-    static let cornerRadius: CGFloat = 10
-}
-
-
+// MARK: - Ship Card View
 struct ShipCardView: View {
-    
     let ship: Ship
     let onFavouriteTap: () -> Void
     
+    @State private var animateLike = false
+    
     var body: some View {
-        RemoteImageView(urlString: ship.image)
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .frame(maxHeight: 220)
-            .overlay(alignment: .bottom) {
-                infoOverlay
+        ZStack(alignment: .bottom) {
+            RemoteImageView(urlString: ship.image)
+                .aspectRatio(16 / 9, contentMode: .fit)
+            
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(ship.name)
+                        .font(DS.Typography.subheading())
+                        .foregroundColor(.white)
+                    Text(ship.type)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                
+                Spacer()
+                
+                VStack {
+                    Button(action: favouriteTapped) {
+                        Image(systemName: ship.isFavorite == true ? "heart.fill" : "heart")
+                            .foregroundColor(.red)
+                            .scaleEffect(animateLike ? 1.3 : 1)
+                    }
+                    .buttonStyle(.plain)
+                    Text(ship.activeText)
+                        .font(.caption)
+                        .foregroundColor(.white)
+                }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(accessibilityText)
-    }
-    
-    private var infoOverlay: some View {
-        HStack {
-            shipInfo
-            Spacer()
-            statusInfo
+            .padding()
+            .background(
+                LinearGradient(colors: [.black.opacity(0.6), .clear],
+                               startPoint: .bottom, endPoint: .top)
+            )
         }
-        .padding()
-        .foregroundColor(.white)
-        .background(gradientBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.medium))
+        .shadow(radius: 5)
     }
     
-    private var shipInfo: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(ship.name)
-                .font(.headline)
-            Text(ship.type)
-                .font(.subheadline)
+    private func favouriteTapped() {
+        withAnimation(.spring(response: 0.25)) {
+            animateLike = true
         }
-    }
-    
-    private var statusInfo: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            favouriteButton
-            Text(ship.status)
-                .font(.subheadline)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            animateLike = false
+            onFavouriteTap()
         }
-    }
-    
-    private var favouriteButton: some View {
-        Button(action: onFavouriteTap) {
-            Image(systemName: ship.isFavorite ? "heart.fill" : "heart")
-                .foregroundColor(.red)
-                .frame(width: 24, height: 24)
-        }
-        .buttonStyle(.plain)
-    }
-    
-    private var gradientBackground: some View {
-        LinearGradient(
-            colors: [.black.opacity(0.6), .clear],
-            startPoint: .bottom,
-            endPoint: .top
-        )
-    }
-    
-    private var accessibilityText: String {
-        "\(ship.name), \(ship.type), \(ship.status)"
     }
 }

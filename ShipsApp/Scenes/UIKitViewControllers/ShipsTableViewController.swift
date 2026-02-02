@@ -7,22 +7,16 @@
 
 import UIKit
 import Combine
-import SwiftUI
 
-// MARK: - ShipsListViewController
-class ShipsListViewController: UIViewController {
-    
+final class ShipsListViewController: UIViewController {
     // MARK: - Properties
     private let viewModel: ShipsViewModel
     private weak var router: MainRouter?
-    private let tableView = UITableView()
-    private let searchController = UISearchController(searchResultsController: nil)
     private var cancellables = Set<AnyCancellable>()
+    private let tableView = UITableView()
     private let refreshControl = UIRefreshControl()
-    
-    private var ships: [Ship] {
-        viewModel.filteredShips
-    }
+    private var skeletonActive = false
+    private var ships: [Ship] { viewModel.filteredShips }
     
     // MARK: - Init
     init(viewModel: ShipsViewModel, router: MainRouter) {
@@ -36,54 +30,49 @@ class ShipsListViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        title = "Ships"
-        view.backgroundColor = .systemBackground
-        
-        setupTableView()
-        setupSearchController()
+        setupLayout()
         bindViewModel()
-        
-        Task {
-            await viewModel.loadIfNeeded()
-        }
+        configureSearch()
+        Task { await viewModel.loadIfNeeded() }
     }
     
     // MARK: - Setup
-    private func setupTableView() {
+    private func setupLayout() {
+        title = "Ships"
+        view.backgroundColor = .systemBackground
+        
+        tableView.backgroundColor = .systemGroupedBackground
+        tableView.separatorStyle = .none
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 260
+        tableView.contentInset = .init(top: 16, left: 0, bottom: 16, right: 0)
+        
+        tableView.register(ShipTableViewCell.self,
+                           forCellReuseIdentifier: ShipTableViewCell.identifier)
+        
+        refreshControl.tintColor = .systemGray
+        refreshControl.attributedTitle = NSAttributedString(
+            string: "Refreshing ships...",
+            attributes: [.foregroundColor: UIColor.gray]
+        )
+        refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+        tableView.refreshControl = refreshControl
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
-        tableView.contentInset = UIEdgeInsets(top: 16, left: 0, bottom: 16, right: 0)
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = .systemGroupedBackground
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 260
-        tableView.alwaysBounceVertical = true   
-        
-        tableView.register(ShipTableViewCell.self,
-                           forCellReuseIdentifier: ShipTableViewCell.identifier)
-        tableView.dataSource = self
-        tableView.delegate = self
-        refreshControl.tintColor = .systemGray
-        refreshControl.attributedTitle = NSAttributedString(
-            string: "Refreshing ships...",
-            attributes: [.foregroundColor: UIColor.gray]
-        )
-        refreshControl.addTarget(self,
-                                 action: #selector(handleRefresh),
-                                 for: .valueChanged)
-        tableView.refreshControl = refreshControl
     }
     
-    private func setupSearchController() {
+    private func configureSearch() {
+        let searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search Ships"
@@ -99,6 +88,13 @@ class ShipsListViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        viewModel.$isLoading
+            .receive(on: RunLoop.main)
+            .sink { [weak self] loading in
+                self?.updateLoadingState(isLoading: loading)
+            }
+            .store(in: &cancellables)
+        
         viewModel.$searchText
             .removeDuplicates()
             .debounce(for: .milliseconds(150), scheduler: RunLoop.main)
@@ -108,71 +104,63 @@ class ShipsListViewController: UIViewController {
             .store(in: &cancellables)
     }
     
+    // MARK: - State Handling
+    private func updateLoadingState(isLoading: Bool) {
+        skeletonActive = isLoading
+        tableView.reloadData()
+    }
+    
     @objc private func handleRefresh() {
-        Task { [weak self] in
-            guard let self else { return }
-            do {
-                await self.viewModel.loadShips()
-                try? await Task.sleep(nanoseconds: 500_000_000)
-            }
+        Task {
+            await viewModel.loadShips()
+            try? await Task.sleep(nanoseconds: 400_000_000)
             await MainActor.run {
-                self.tableView.reloadData()
                 self.refreshControl.endRefreshing()
+                self.tableView.reloadData()
             }
         }
     }
 }
 
-
 // MARK: - UITableViewDataSource
 extension ShipsListViewController: UITableViewDataSource {
     
-    func numberOfSections(in tableView: UITableView) -> Int {
-        1
-    }
-    
     func tableView(_ tableView: UITableView,
                    numberOfRowsInSection section: Int) -> Int {
-        viewModel.isLoading && ships.isEmpty ? 6 : ships.count
+        skeletonActive ? 6 : ships.count
     }
     
     func tableView(_ tableView: UITableView,
                    cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(
+        guard let cell = tableView.dequeueReusableCell(
             withIdentifier: ShipTableViewCell.identifier,
             for: indexPath
-        ) as! ShipTableViewCell
+        ) as? ShipTableViewCell else {
+            return UITableViewCell()
+        }
         
-        cell.backgroundColor = .clear
-        
-        if viewModel.isLoading || ships.isEmpty {
+        if skeletonActive {
             cell.configureSkeleton()
-        } else {
+        } else if ships.indices.contains(indexPath.row) {
             let ship = ships[indexPath.row]
             cell.configure(with: ship) { [weak self] in
                 self?.viewModel.toggleFavourite(for: ship)
             }
         }
-        
         return cell
     }
 }
 
-
 // MARK: - UITableViewDelegate
 extension ShipsListViewController: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView,
-                   didSelectRowAt indexPath: IndexPath) {
-        guard !viewModel.isLoading, !ships.isEmpty else { return }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard !skeletonActive, ships.indices.contains(indexPath.row) else { return }
         let ship = ships[indexPath.row]
         router?.goToShipDetails(ship: ship)
-        
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
-
 
 // MARK: - UISearchResultsUpdating
 extension ShipsListViewController: UISearchResultsUpdating {

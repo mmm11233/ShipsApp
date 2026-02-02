@@ -7,142 +7,112 @@
 
 import SwiftUI
 
-// MARK: - Ship Details Screen
 struct ShipDetailsView: View {
     let ship: Ship
-
+    
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                HeaderImageView(imageURL: ship.image)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    TitleSection(ship: ship)
-                    Divider()
-                    DetailsSection(ship: ship)
+            ScrollView {
+                VStack(spacing: 24) {
+                    
+                    shipImageBlock
+                    
+                    headerBlock
+                    
+                    detailsBlock
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 20)
             }
-            .padding(.vertical)
+            .background(DS.Colors.background)
+            .navigationTitle(ship.name)
         }
-        .background(Color(.systemGroupedBackground))
     }
-}
-
- // MARK: - Header Image
-private struct HeaderImageView: View {
-    let imageURL: String?
-
-    var body: some View {
-        RemoteImageView(urlString: imageURL)
-            .aspectRatio(16 / 9, contentMode: .fit)
-            .frame(maxHeight: 240)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .padding()
-            .shadow(
-                color: .black.opacity(0.2),
-                radius: 8,
-                y: 4
-            )
+    
+    private var shipImageBlock: some View {
+        Group {
+            if let imageURL = ship.image {
+                RemoteImageView(urlString: imageURL)
+                    .aspectRatio(16/9, contentMode: .fit)
+                    .frame(maxHeight: 240)
+                    .clipShape(RoundedRectangle(cornerRadius: DS.Radius.medium))
+                    .shadow(radius: 8)
+            }
+        }
     }
-}
-
-// MARK: - Title Section
-private struct TitleSection: View {
-    let ship: Ship
-
-    var body: some View {
+    
+    private var headerBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(ship.name)
-                .font(.system(.title, design: .rounded, weight: .bold))
-
+                .font(DS.Typography.heading(24))
+            
             Text(ship.type)
                 .font(.title3)
                 .foregroundStyle(.secondary)
-
-            StatusBadge(status: ship.status)
-                .padding(.top, 4)
+            
+            StatusBadge(ship: ship)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var detailsBlock: some View {
+        VStack(spacing: 12) {
+            DetailRow(title: "Port", value: ship.homePort ?? "Unknown")
+            DetailRow(title: "Year Built", value: ship.yearBuilt?.description ?? "Unknown")
+            DetailRow(title: "Mass (kg)", value: ship.massKg?.description ?? "Unknown")
+            DetailRow(title: "MMSI", value: ship.mmsi?.description ?? "Unknown")
+            
+            if let url = ship.websiteURL {
+                DetailRow(title: "More Info", value: "Open in Safari", url: url)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.white)
+                .shadow(radius: 4)
+        )
     }
 }
 
-// MARK: - Status Pill
+// MARK: - Supporting Subviews
 private struct StatusBadge: View {
-    let status: String
-
+    let ship: Ship
+    
     var body: some View {
-        Text(status)
-            .font(.caption)
-            .fontWeight(.semibold)
+        Text(ship.activeText)
+            .font(.caption.bold())
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(statusColor.opacity(0.15))
+                    .fill(statusColor.opacity(0.2))
             )
             .foregroundColor(statusColor)
     }
-
+    
     private var statusColor: Color {
-        status.lowercased() == "active" ? .green : .red
+        ship.active ? DS.Colors.success : DS.Colors.danger
     }
 }
 
-// MARK: - Details Section
-private struct DetailsSection: View {
-    let ship: Ship
-
-    var body: some View {
-        VStack(spacing: 10) {
-            DetailRow(title: "Port", value: ship.port ?? "Unknown")
-            DetailRow(title: "Year Built", value: yearText)
-            DetailRow(title: "Mass (kg)", value: massText)
-            DetailRow(title: "MMSI", value: ship.mmsi.map(String.init) ?? "Unknown")
-
-            if let link = ship.linkURL {
-                DetailRow(title: "More Info", value: "Open in Safari", url: link)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-
-    private var yearText: String {
-        ship.yearBuilt.map { String($0) } ?? "Unknown"
-    }
-
-    private var massText: String {
-        ship.massKg.map { "\($0)" } ?? "Unknown"
-    }
-}
-
-// MARK: - Reusable Detail Row
 private struct DetailRow: View {
     let title: String
     let value: String
-    let url: URL?
-
-    init(title: String, value: String, url: URL? = nil) {
-        self.title = title
-        self.value = value
-        self.url = url
-    }
-
+    var url: URL?
+    
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack {
             Text(title)
                 .foregroundStyle(.secondary)
             Spacer()
-            if let url = url {
+            if let url {
                 Link(value, destination: url)
                     .fontWeight(.medium)
                     .foregroundColor(.blue)
-                    .multilineTextAlignment(.trailing)
             } else {
-                Text(value)
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.trailing)
+                Text(value).fontWeight(.medium)
             }
         }
-        .padding(.vertical, 4)
     }
 }

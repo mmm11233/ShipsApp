@@ -9,22 +9,22 @@ import NetworkKit
 import Foundation
 
 protocol ShipsServiceProtocol {
-    func fetchShips() async throws -> [ShipDTO]
+    func fetchShips() async throws -> [Ship]
 }
 
 final class ShipsService: ShipsServiceProtocol {
     
     private let client: NetworkClientProtocol
     
-    init(client: NetworkClientProtocol) {
+    init(client: NetworkClientProtocol = NetworkClient()) {
         self.client = client
     }
     
-    func fetchShips() async throws -> [ShipDTO] {
+    func fetchShips() async throws -> [Ship] {
         do {
             return try await client.request(
                 endpoint: ShipsEndpoint.ships,
-                responseType: [ShipDTO].self
+                responseType: [Ship].self
             )
         } catch {
             print("Ship Fetch Failed:", error.localizedDescription)
@@ -32,6 +32,7 @@ final class ShipsService: ShipsServiceProtocol {
         }
     }
 }
+
 
 enum ShipsEndpoint: Endpoint {
     case ships

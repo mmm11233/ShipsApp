@@ -7,63 +7,61 @@
 
 import UIKit
 import SwiftUI
-import CoreData
-//MARK: TODO gaakete protocol
+
 final class MainRouter {
-    let navigationController: UINavigationController
+    private let navigationController: UINavigationController
     
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
     
+    // MARK: - Root Onboarding
     func goToOnboarding() {
-        let view = OnboardingView(
-            onSwiftUIVersionTap: { [weak self] in
-                self?.goToShipsListSwiftUI()
-            },
-            onUIKitVersionTap: { [weak self] in
-                self?.goToShipsListTableView()
-            }
+        let onboarding = OnboardingView(
+            onSwiftUIVersionTap: { [weak self] in self?.goToShipsListSwiftUI() },
+            onUIKitVersionTap: { [weak self] in self?.goToShipsListUIKit() }
         )
         
-        let hostingController = UIHostingController(rootView: view)
-        hostingController.navigationItem.largeTitleDisplayMode = .never
-        navigationController.setViewControllers([hostingController], animated: false)
+        let hosting = UIHostingController(rootView: onboarding)
+        hosting.navigationItem.largeTitleDisplayMode = .never
+        navigationController.setViewControllers([hosting], animated: false)
     }
     
+    // MARK: - SwiftUI version
     func goToShipsListSwiftUI() {
-        let dataController = DataController()
+        let persistence = PersistenceController()
+        let viewModel = ShipsViewModel(persistence: persistence)
         
-        let view = ShipsListView(
-            dataController: dataController,
+        let listView = ShipsListView(
+            viewModel: viewModel,
             onShipTap: { [weak self] ship in
                 self?.goToShipDetails(ship: ship)
             }
         )
-            .environment(\.managedObjectContext, dataController.getContext())
         
-        let hostingController = UIHostingController(rootView: view)
+        let hostingController = UIHostingController(rootView: listView)
         hostingController.title = "Ships"
         hostingController.navigationItem.largeTitleDisplayMode = .automatic
-        
         navigationController.pushViewController(hostingController, animated: false)
     }
     
-    func goToShipsListTableView() {
-        let dataController = DataController()
-        let viewModel = ShipsViewModel(dataController: dataController)
-        let shipsVC = ShipsListViewController(viewModel: viewModel, router: self)
-        shipsVC.navigationItem.largeTitleDisplayMode = .automatic
+    // MARK: - UIKit version
+    func goToShipsListUIKit() {
+        let persistence = PersistenceController()
+        let viewModel = ShipsViewModel(persistence: persistence)
+        let controller = ShipsListViewController(viewModel: viewModel, router: self)
         
-        navigationController.pushViewController(shipsVC, animated: false)
+        controller.navigationItem.largeTitleDisplayMode = .automatic
+        navigationController.pushViewController(controller, animated: false)
     }
     
+    // MARK: - Details screen
     func goToShipDetails(ship: Ship) {
-        let detailsView = ShipDetailsView(ship: ship)
-        let hostingController = UIHostingController(rootView: detailsView)
-        hostingController.title = ship.name
-        hostingController.navigationItem.largeTitleDisplayMode = .never
+        let details = ShipDetailsView(ship: ship)
+        let hosting = UIHostingController(rootView: details)
         
-        navigationController.pushViewController(hostingController, animated: false)
+        hosting.title = ship.name
+        hosting.navigationItem.largeTitleDisplayMode = .never
+        navigationController.pushViewController(hosting, animated: true)
     }
 }

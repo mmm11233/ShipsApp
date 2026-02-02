@@ -14,6 +14,7 @@ struct ShipsAppApp: App {
     var body: some Scene {
         WindowGroup {
             MainRouterRootView()
+                .ignoresSafeArea()
         }
     }
 }
