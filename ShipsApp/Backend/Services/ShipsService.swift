@@ -13,33 +13,39 @@ protocol ShipsServiceProtocol {
 }
 
 final class ShipsService: ShipsServiceProtocol {
-
+    
     private let client: NetworkClientProtocol
-
+    
     init(client: NetworkClientProtocol) {
         self.client = client
     }
-
+    
     func fetchShips() async throws -> [ShipDTO] {
-        try await client.request(
-            endpoint: ShipsEndpoint.ships,
-            responseType: [ShipDTO].self
-        )
+        do {
+            return try await client.request(
+                endpoint: ShipsEndpoint.ships,
+                responseType: [ShipDTO].self
+            )
+        } catch {
+            print("Ship Fetch Failed:", error.localizedDescription)
+            throw error
+        }
     }
 }
 
 enum ShipsEndpoint: Endpoint {
     case ships
-
+    
     var baseURL: String {
         "https://api.spacexdata.com"
     }
-
+    
     var path: String {
-        "/v4/ships"
+        switch self {
+        case .ships:
+            return "/v4/ships"
+        }
     }
-
-    var method: HTTPMethod {
-        .get
-    }
+    
+    var method: HTTPMethod { .get }
 }
