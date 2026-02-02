@@ -29,7 +29,7 @@ final class MainRouter {
     
     // MARK: - SwiftUI version
     func goToShipsListSwiftUI() {
-        let persistence = PersistenceController()
+        let persistence = PersistenceContainer()
         let viewModel = ShipsViewModel(persistence: persistence)
         
         let listView = ShipsListView(
@@ -47,7 +47,7 @@ final class MainRouter {
     
     // MARK: - UIKit version
     func goToShipsListUIKit() {
-        let persistence = PersistenceController()
+        let persistence = PersistenceContainer()
         let viewModel = ShipsViewModel(persistence: persistence)
         let controller = ShipsListViewController(viewModel: viewModel, router: self)
         

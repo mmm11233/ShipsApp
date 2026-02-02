@@ -1,5 +1,5 @@
 //
-//  PersistenceController.swift
+//  PersistenceContainer.swift
 //  ShipsApp
 //
 //  Created by Mariam Joglidze on 01.02.26.
@@ -10,14 +10,14 @@ import CoreData
 import Combine
 
 // MARK: - Protocol for CoreData abstraction
-protocol PersistenceControllerProtocol {
+protocol PersistenceContainerProtocol {
     func toggleFavourite(for ship: Ship)
     func isFavourite(shipID: String) -> Bool
     func fetchAllFavourites() -> [Ship]
 }
 
 // MARK: - Implementation
-final class PersistenceController: ObservableObject, PersistenceControllerProtocol {
+final class PersistenceContainer: ObservableObject, PersistenceContainerProtocol {
     private let container: NSPersistentContainer
     
     init(modelName: String = "Ship") {

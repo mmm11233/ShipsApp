@@ -19,12 +19,12 @@ final class ShipsViewModel: ObservableObject {
 
     // MARK: - Dependencies
     private let service: ShipsServiceProtocol
-    private let persistence: PersistenceControllerProtocol
+    private let persistence: PersistenceContainerProtocol
 
     // MARK: - Init
     init(
         service: ShipsServiceProtocol = ShipsService(),
-        persistence: PersistenceControllerProtocol
+        persistence: PersistenceContainerProtocol
     ) {
         self.service = service
         self.persistence = persistence
