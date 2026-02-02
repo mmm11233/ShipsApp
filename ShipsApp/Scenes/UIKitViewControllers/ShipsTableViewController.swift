@@ -66,13 +66,17 @@ class ShipsListViewController: UIViewController {
         tableView.backgroundColor = .systemGroupedBackground
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 260
+        tableView.alwaysBounceVertical = true   
         
         tableView.register(ShipTableViewCell.self,
                            forCellReuseIdentifier: ShipTableViewCell.identifier)
-        
         tableView.dataSource = self
         tableView.delegate = self
-        
+        refreshControl.tintColor = .systemGray
+        refreshControl.attributedTitle = NSAttributedString(
+            string: "Refreshing ships...",
+            attributes: [.foregroundColor: UIColor.gray]
+        )
         refreshControl.addTarget(self,
                                  action: #selector(handleRefresh),
                                  for: .valueChanged)
@@ -107,8 +111,12 @@ class ShipsListViewController: UIViewController {
     @objc private func handleRefresh() {
         Task { [weak self] in
             guard let self else { return }
-            await self.viewModel.loadShips()
+            do {
+                await self.viewModel.loadShips()
+                try? await Task.sleep(nanoseconds: 500_000_000)
+            }
             await MainActor.run {
+                self.tableView.reloadData()
                 self.refreshControl.endRefreshing()
             }
         }

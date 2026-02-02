@@ -20,7 +20,6 @@ struct RemoteImageView: View {
             case .success(let image):
                 image
                     .resizable()
-                    .scaledToFill()
                 
             case .failure:
                 placeholder

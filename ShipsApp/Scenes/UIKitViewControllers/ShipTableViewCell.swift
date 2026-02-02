@@ -58,7 +58,7 @@ class ShipTableViewCell: UITableViewCell {
         favouriteButton.setImage(heartImage, for: .normal)
         favouriteButton.tintColor = .red
         
-        shipImageView.image = UIImage(systemName: "photo") // placeholder
+        shipImageView.image = UIImage(systemName: "photo") 
         
         if let urlString = ship.image, let url = URL(string: urlString) {
             RemoteImageLoader.shared.load(url: url) { [weak self] image in
