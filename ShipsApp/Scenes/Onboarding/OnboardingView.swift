@@ -9,79 +9,56 @@ import SwiftUI
 import CoreData
 
 struct OnboardingView: View {
+    let onSwiftUIVersionTap: () -> Void
+    let onUIKitVersionTap: () -> Void
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 32) {
-                Spacer()
-                
-                Text("Welcome to ShipsApp")
-                    .font(.largeTitle.bold())
-                    .multilineTextAlignment(.center)
-                
-                Spacer()
-                
-                // MARK: - Buttons
-                VStack(spacing: 16) {
-                    NavigationLink {
-                        SwiftUIShipsView()
-                    } label: {
-                        Text("SwiftUI version")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                    }
-                    
-                    NavigationLink {
-                        UIKitShipsWrapper()
-                    } label: {
-                        Text("UIKit version")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .cornerRadius(12)
-                    }
+        VStack(spacing: 32) {
+            Spacer()
+            
+            Text("Welcome to ShipsApp")
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Spacer()
+            
+            VStack(spacing: 16) {
+                Button(action: onSwiftUIVersionTap) {
+                    Text("SwiftUI Version")
+                        .modifier(OnboardingButtonStyle(color: .blue))
                 }
-                .padding(.horizontal, 40)
                 
-                Spacer()
+                Button(action: onUIKitVersionTap) {
+                    Text("UIKit Version")
+                        .modifier(OnboardingButtonStyle(color: .green))
+                }
             }
-            .navigationTitle("Onboarding")
-            .navigationBarHidden(true)
+            .padding(.horizontal, 40)
+            
+            Spacer()
         }
     }
 }
 
-// MARK: - SwiftUI Version Placeholder
-struct SwiftUIShipsView: View {
-        @StateObject private var dataController = DataController()
-
-    var body: some View {
-        ShipsListView(dataController: dataController)
-            .environment(\.managedObjectContext, dataController.container.viewContext)
-    }
-}
-
-// MARK: - UIKit Wrapper for SwiftUI NavigationLink
-struct UIKitShipsWrapper: UIViewControllerRepresentable {
+// MARK: - Button style modifier for consistent look
+private struct OnboardingButtonStyle: ViewModifier {
+    let color: Color
     
-    func makeUIViewController(context: Context) -> UINavigationController {
-        let dataController = DataController()
-        let viewModel = ShipsViewModel(dataController: dataController)
-        let shipsVC = ShipsListViewController(viewModel: viewModel)
-        let nav = UINavigationController(rootViewController: shipsVC)
-        return nav
+    func body(content: Content) -> some View {
+        content
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(color)
+            .cornerRadius(12)
+            .shadow(color: color.opacity(0.3), radius: 6, y: 4)
     }
-    
-    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
 }
 
 // MARK: - Preview
 #Preview {
-    OnboardingView()
+    OnboardingView(onSwiftUIVersionTap: {}, onUIKitVersionTap: {})
 }
+

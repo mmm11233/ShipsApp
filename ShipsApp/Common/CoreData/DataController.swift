@@ -10,7 +10,7 @@ import CoreData
 import Combine
 
 class DataController: ObservableObject {
-    let container: NSPersistentContainer
+   private let container: NSPersistentContainer
     
     init() {
         container = NSPersistentContainer(name: "Ship") 
@@ -19,6 +19,10 @@ class DataController: ObservableObject {
                 print("Core Data failed to load: \(error.localizedDescription)")
             }
         }
+    }
+    
+    func getContext() -> NSManagedObjectContext {
+        container.viewContext
     }
     
     // MARK: - Save Context
