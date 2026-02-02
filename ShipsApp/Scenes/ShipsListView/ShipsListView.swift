@@ -20,6 +20,7 @@ struct ShipsListView: View {
         VStack {
             content
         }
+        .errorAlert(errorMessage: $viewModel.errorMessage)
         .searchable(text: $viewModel.searchText, prompt: "Search Ships")
         .background(DS.Colors.background)
         .overlay {

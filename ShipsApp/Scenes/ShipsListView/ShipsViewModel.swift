@@ -11,16 +11,17 @@ import NetworkKit
 
 @MainActor
 final class ShipsViewModel: ObservableObject {
-
+    
     // MARK: - Published properties
     @Published var searchText: String = ""
     @Published private(set) var ships: [Ship] = []
     @Published var isLoading: Bool = false
-
+    @Published var errorMessage: String? = nil
+    
     // MARK: - Dependencies
     private let service: ShipsServiceProtocol
     private let persistence: PersistenceContainerProtocol
-
+    
     // MARK: - Init
     init(
         service: ShipsServiceProtocol,
@@ -29,7 +30,7 @@ final class ShipsViewModel: ObservableObject {
         self.service = service
         self.persistence = persistence
     }
-
+    
     // MARK: - Computed
     var filteredShips: [Ship] {
         guard !searchText.isEmpty else { return ships }
@@ -38,13 +39,13 @@ final class ShipsViewModel: ObservableObject {
             $0.type.localizedCaseInsensitiveContains(searchText)
         }
     }
-
+    
     // MARK: - Data loading
     func loadIfNeeded() async {
         guard ships.isEmpty else { return }
         await loadShips()
     }
-
+    
     func loadShips() async {
         isLoading = true
         defer { isLoading = false }
@@ -67,17 +68,19 @@ final class ShipsViewModel: ObservableObject {
                 
                 return mutableItem
             }
+            errorMessage = nil
         } catch {
             print("Ship load failed:", error)
+            errorMessage = error.localizedDescription
         }
     }
-
+    
     // MARK: - Favourites handling
     func toggleFavourite(for ship: Ship) {
         persistence.toggleFavourite(for: ship)
         updateFavouriteState(for: ship.id)
     }
-
+    
     private func updateFavouriteState(for id: String) {
         guard let index = ships.firstIndex(where: { $0.id == id }) else { return }
         ships[index].isFavorite?.toggle()
